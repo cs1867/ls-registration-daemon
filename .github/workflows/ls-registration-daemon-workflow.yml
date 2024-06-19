@@ -19,7 +19,7 @@ on:
 
 jobs:
        
-  build-logstash:
+  build-ls-registration-daemon:
 
      runs-on: ubuntu-latest
      
