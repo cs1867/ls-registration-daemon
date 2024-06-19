@@ -1,0 +1,124 @@
+name: ls-registration-daemon-workflow
+  
+on:
+  
+  workflow_dispatch: 
+    inputs:  
+      OS: 
+        description: 'OS to build on' 
+        required: true
+      BUILD_VARS_JSON:
+        description: 'Build var json file'
+        required: true
+        
+  workflow_run:
+    workflows: "Create Artifacts and pass runid"
+    branches: 'github-workflow'
+    types:
+      - completed
+
+jobs:
+       
+  build-logstash:
+
+     runs-on: ubuntu-latest
+     
+     steps:
+        - name: Check out Repo
+          uses: actions/checkout@v4
+          with:
+           ref: 5.2.0
+           
+        - name: Fetch workflow script from projects
+          env:
+             github-token: ${{ secrets.GIT_ACTIONS }}
+          run: |
+            git clone https://github.com/cs1867/project.git project
+            cp project/toolbox/workflows/github-workflow.sh .    
+        
+        - name: Pretty-print BUILD_VARS_JSON
+          run: |
+            echo '${{ github.event.inputs.BUILD_VARS_JSON }}'
+            
+        - name: Extract dependencies
+          id: extract_deps
+          run: |
+            echo '${{ github.event.inputs.BUILD_VARS_JSON }}' | jq -r '.repos[] | select(.name == "${{ github.event.repository.name }}") | .deps[]' > deps.txt
+            echo "Dependencies:"
+            cat deps.txt
+       
+        - name: Download artifacts
+          run: |
+            mkdir -p artifacts
+            while IFS= read -r repo; do
+              echo "Downloading artifact for $repo"
+              run_id=$(echo '${{ github.event.inputs.BUILD_VARS_JSON }}' | jq -r ".buildids | .[\"$repo\"]")
+              echo "rund id $run_id"
+              gh run download $run_id --repo cs1867/$repo -D artifacts/$repo --name "$repo-${{ github.event.inputs.OS }}"  
+              artifact_path="artifacts/$repo"
+              echo "list artifact path"
+              ls -al "$artifact_path"
+              mkdir -p artifacts/RPMS
+              echo "copy to the artifacts RPM dir"
+              cp "$artifact_path"/RPMS/*.rpm artifacts/RPMS
+            done < deps.txt
+          env:
+            GITHUB_TOKEN: ${{ secrets.GIT_ACTIONS }}
+
+        - name: run docker oneshot builder
+          run: |
+           curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run github-workflow.sh . '${{ github.event.inputs.OS }}'  
+        
+        - uses: actions/upload-artifact@v3
+          with:
+            name: ${{ github.event.repository.name }}-${{ github.event.inputs.OS }}
+            path: unibuild-repo
+            retention-days: 5
+            
+        - name: Delete current repo from build
+          id: modify_json
+          run: |
+  
+            modified_json=$(echo '${{ github.event.inputs.BUILD_VARS_JSON }}' | jq 'del(.repos[0])')
+            echo "Modified JSON:"
+            echo "$modified_json" | jq .
+            BUILD_VARS_JSON=$(echo "$modified_json" | jq -c '.')
+            echo "BUILD_VARS_JSON=$BUILD_VARS_JSON" >> $GITHUB_ENV
+            echo "**** next next ****"
+            echo "BUILD_VARS_JSON=$BUILD_VARS_JSON"  
+            
+        - name: Use modified BUILD_VARS_JSON
+          run: |
+            echo "Using the modified BUILD_VARS_JSON environment variable:"
+            echo "$BUILD_VARS_JSON" | jq .
+        - name: Add GitHub run ID to buildids
+          id: add_run_id
+          run: |
+            GITHUB_RUN_ID=${{ github.run_id }}
+            modified_json=$(echo "$BUILD_VARS_JSON"  | jq --arg run_id "$GITHUB_RUN_ID" '."${{ github.event.repository.name }}" = $run_id')
+            echo "Modified JSON with GitHub run ID:"
+            echo "$modified_json" | jq .
+            BUILD_VARS_JSON=$(echo "$modified_json" | jq -c '.')
+            echo "BUILD_VARS_JSON=$BUILD_VARS_JSON" >> $GITHUB_ENV
+            echo "BUILD_VARS_JSON=$BUILD_VARS_JSON"  
+            
+        - name: Use modified BUILD_VARS_JSON with run id
+          run: |
+            echo "Using the modified BUILD_VARS_JSON environment variable:"
+            echo "$BUILD_VARS_JSON" | jq .
+
+        - name: Pass workflow  
+          uses: actions/github-script@v6
+          with:
+            github-token: ${{ secrets.GIT_ACTIONS }}
+            script: |
+              await github.rest.actions.createWorkflowDispatch({
+              owner: 'cs1867',
+              repo: '${{ env.NEXTREPO}}',
+              workflow_id: '${{ env.NEXTREPO}}-workflow.yml',
+              ref: 'github-workflow',
+               inputs: {
+              OS:  '${{ github.event.inputs.OS }}',
+              BUILD_VARS_JSON: '${{ env.BUILD_VARS_JSON}}'
+              }
+              })     
