@@ -24,6 +24,19 @@ jobs:
      runs-on: ubuntu-latest
      
      steps:
+     
+        - name: Capture start date and time
+          id: start_time
+          run: echo "start_time=$(date -u)" >> $GITHUB_ENV
+       
+        - name: Add start time to build_vars.json
+          run: |
+            modified_json=$(echo '${{ github.event.inputs.BUILD_VARS_JSON }}' | jq '.buildstats += { "${{ github.event.repository.name }}-start": "${{ env.start_time }}" }' )
+            BUILD_VARS_JSON=$(echo "$modified_json" | jq -c '.')
+            echo "BUILD_VARS_JSON=$BUILD_VARS_JSON" >> $GITHUB_ENV
+            echo "**** next next ****"
+            echo "BUILD_VARS_JSON=$BUILD_VARS_JSON"
+            
         - name: Check out Repo
           uses: actions/checkout@v4
           with:
@@ -111,6 +124,17 @@ jobs:
             BUILD_VARS_JSON=$(echo "$modified_json" | jq -c '.')
             echo "BUILD_VARS_JSON=$BUILD_VARS_JSON" >> $GITHUB_ENV
             echo "BUILD_VARS_JSON=$BUILD_VARS_JSON"  
+            
+        - name: Capture end date and time
+          id: end_time
+          run: echo "end_time=$(date -u)" >> $GITHUB_ENV
+            
+        - name: Add end time to build_vars.json
+          run: |
+            modified_json=$(echo "$BUILD_VARS_JSON" | jq '.buildstats += { "${{ github.event.repository.name }}-end": "${{ env.end_time }}" }' )
+            BUILD_VARS_JSON=$(echo "$modified_json" | jq -c '.')
+            echo "BUILD_VARS_JSON=$BUILD_VARS_JSON" >> $GITHUB_ENV
+            echo "BUILD_VARS_JSON=$BUILD_VARS_JSON"
             
         - name: Use modified BUILD_VARS_JSON with run id
           run: |
