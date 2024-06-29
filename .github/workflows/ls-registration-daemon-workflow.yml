@@ -51,12 +51,12 @@ jobs:
         
         - name: Pretty-print BUILD_VARS_JSON
           run: |
-            echo '${{ github.event.inputs.BUILD_VARS_JSON }}'
+            echo "$BUILD_VARS_JSON"
             
         - name: Extract dependencies
           id: extract_deps
           run: |
-            echo '${{ github.event.inputs.BUILD_VARS_JSON }}' | jq -r '.repos[] | select(.name == "${{ github.event.repository.name }}") | .deps[]' > deps.txt
+            echo "$BUILD_VARS_JSON" | jq -r '.repos[] | select(.name == "${{ github.event.repository.name }}") | .deps[]' > deps.txt
             echo "Dependencies:"
             cat deps.txt
        
@@ -65,7 +65,7 @@ jobs:
             mkdir -p artifacts
             while IFS= read -r repo; do
               echo "Downloading artifact for $repo"
-              run_id=$(echo '${{ github.event.inputs.BUILD_VARS_JSON }}' | jq -r ".buildids | .[\"$repo\"]")
+              run_id=$(echo "$BUILD_VARS_JSON" | jq -r ".buildids | .[\"$repo\"]")
               echo "rund id $run_id"
               gh run download $run_id --repo cs1867/$repo -D artifacts/$repo --name "$repo-${{ github.event.inputs.OS }}"  
               artifact_path="artifacts/$repo"
@@ -92,7 +92,7 @@ jobs:
           id: modify_json
           run: |
   
-            modified_json=$(echo '${{ github.event.inputs.BUILD_VARS_JSON }}' | jq 'del(.repos[0])')
+            modified_json=$(echo "$BUILD_VARS_JSON" | jq 'del(.repos[0])')
             echo "Modified JSON:"
             echo "$modified_json" | jq .
             BUILD_VARS_JSON=$(echo "$modified_json" | jq -c '.')
