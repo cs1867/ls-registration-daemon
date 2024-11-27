@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - github-workflow
+env:
+  BUILD_OS: u20
 
 jobs:
   build-ls-registration-daemon:
@@ -31,47 +33,28 @@ jobs:
               ;;
           esac
 
-      # Extract dependencies
-      - name: Extract dependencies
-        id: extract_deps
-        run: |
-          echo "$BUILD_VARS_JSON" | jq -r '.repos[] | select(.name == "${{ github.event.repository.name }}") | .deps[]' > deps.txt
-          case "${{ env.BUILD_OS }}" in
-            'u20'|'u24')
-              sed -i '/minor-packages/d' deps.txt
-              ;;
-            *)
-              echo "No specific packages to remove"
-              ;;
-          esac
-          echo "Dependencies:"
-          cat deps.txt
-
       # Download artifacts
       - name: Download artifacts
         run: |
           mkdir -p artifacts
-          while IFS= read -r repo; do
-            echo "Downloading artifact for $repo"
-            run_id=$(echo "$BUILD_VARS_JSON" | jq -r ".buildids | .[\"$repo\"]")
-            echo "Run ID: $run_id"
-            gh run download $run_id --repo cs1867/$repo -D artifacts/$repo --name "$repo-${{ env.BUILD_OS }}"  
-            artifact_path="artifacts/$repo"
-            echo "Listing artifact path:"
-            ls -al "$artifact_path"
-            case "${{ env.BUILD_OS }}" in
-              'ol8'|'el9')
-                mkdir -p artifacts/RPMS
-                cp "$artifact_path"/RPMS/*.rpm artifacts/RPMS
-                ;;
-              'd11'|'d12'|'u20'|'u24')
-                mkdir -p artifacts/DEBS
-                cp -r "$artifact_path"/* artifacts/DEBS
-                echo "List artifacts DEBS directory:"
-                ls -al artifacts/DEBS/*
-                ;;
-            esac
-          done < deps.txt
+          echo "Downloading artifact for pscheduler"
+          echo "Run ID: $run_id"
+          gh run download $run_id --repo cs1867/pscheduler -D artifacts/pscheduler --name "pscheduler-${{ env.BUILD_OS }}"  
+          artifact_path="artifacts/pscheduler
+          echo "Listing artifact path:"
+          ls -al "$artifact_path"
+          case "${{ env.BUILD_OS }}" in
+            'ol8'|'el9')
+              mkdir -p artifacts/RPMS
+              cp "$artifact_path"/RPMS/*.rpm artifacts/RPMS
+              ;;
+            'd11'|'d12'|'u20'|'u24')
+              mkdir -p artifacts/DEBS
+              cp -r "$artifact_path"/* artifacts/DEBS
+              echo "List artifacts DEBS directory:"
+              ls -al artifacts/DEBS/*
+              ;;
+          esac
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_ACTIONS }}
 
