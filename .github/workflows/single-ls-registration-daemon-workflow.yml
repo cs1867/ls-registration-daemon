@@ -40,7 +40,7 @@ jobs:
           echo "Downloading artifact for pscheduler"
           echo "Run ID: $run_id"
           gh run download $run_id --repo cs1867/pscheduler -D artifacts/pscheduler --name "pscheduler-${{ env.BUILD_OS }}"  
-          artifact_path="artifacts/pscheduler
+          artifact_path="artifacts/pscheduler"
           echo "Listing artifact path:"
           ls -al "$artifact_path"
         env:
