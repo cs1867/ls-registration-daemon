@@ -5,7 +5,7 @@ on:
     branches:
       - github-workflow
 env:
-  BUILD_OS: u20
+  BUILD_OS: u20 
 
 jobs:
   build-ls-registration-daemon:
