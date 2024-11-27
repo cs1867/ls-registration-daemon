@@ -1,18 +1,6 @@
 name: single-ls-registration-daemon-workflow
 
-on:
-
-  workflow_dispatch:
-    inputs: 
-      BUILD_VARS_JSON:
-        description: 'Build var json file'
-        required: true
-
-  workflow_run:
-    workflows: "Create Artifacts and pass runid"
-    branches: 'github-workflow'
-    types:
-      - completed
+on: push
 
 jobs:
 
