@@ -48,7 +48,7 @@ jobs:
           gh run download 12052703124 --repo cs1867/perl-shared -D artifacts/perl-shared --name "perl-shared-${{ env.BUILD_OS }}"  
           artifact_path="artifacts/perl-shared"
           echo "Listing artifact path:"
-          ls -al "$artifact_path"
+          ls -al "$artifact_path/*.deb"
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_ACTIONS }}
 
