@@ -117,7 +117,7 @@ jobs:
                    curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run github-el-workflow.sh . '${{ env.BUILD_OS }}'  
                 ;;
                 'd11'|'d12'|'u20'|'u24')                
-                  curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run Create github_u20_workflow.sh . '${{ env.BUILD_OS }}'
+                  curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run github_u20_workflow.sh . '${{ env.BUILD_OS }}'
                 ;;
               esac
 
