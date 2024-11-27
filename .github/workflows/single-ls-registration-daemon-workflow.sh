@@ -1,7 +1,9 @@
 name: single-ls-registration-daemon-workflow
 
-on: push
-
+on: 
+  push:
+    branches:
+      - github-workflow
 jobs:
 
   build-ls-registration-daemon:
