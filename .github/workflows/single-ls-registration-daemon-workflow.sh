@@ -10,27 +10,7 @@ jobs:
 
      steps:
 
-        - name: Capture start date and time
-          id: start_time
-          run: echo "start_time=$(date -u)" >> $GITHUB_ENV
 
-        - name: Add start time to build_vars.json
-          run: |
-            modified_json=$(echo '${{ github.event.inputs.BUILD_VARS_JSON }}' | jq '.buildstats += { "${{ github.event.repository.name }}-start": "${{ env.start_time }}" }' )
-            BUILD_VARS_JSON=$(echo "$modified_json" | jq -c '.')
-            echo "BUILD_VARS_JSON=$BUILD_VARS_JSON" >> $GITHUB_ENV
-            echo "**** next next ****"
-            echo "BUILD_VARS_JSON=$BUILD_VARS_JSON"
-        - name: Get build vars from input file
-          id: extract_build_vars
-          run: |
-            BUILD_OS=$(echo  "$BUILD_VARS_JSON" | jq -r '.buildstats.OS' )
-            BUILD_BRANCH=$(echo  "$BUILD_VARS_JSON" | jq -r '.buildstats.BUILD_BRANCH' )
-            BUILD_TYPE=$(echo  "$BUILD_VARS_JSON" | jq -r '.buildstats.BUILD_TYPE' )
-            echo "BUILD_OS=$BUILD_OS" >> $GITHUB_ENV 
-            echo "BUILD_BRANCH=$BUILD_BRANCH" >> $GITHUB_ENV
-            echo "BUILD_TYPE=$BUILD_TYPE" >> $GITHUB_ENV
-       
        # TOdo:  branch is hardcoded 
        # make sure it is ok to update
         - name: Check out Repo
@@ -111,64 +91,4 @@ jobs:
             path: unibuild-repo
             retention-days: 5
 
-        - name: Delete current repo from build
-          id: modify_json
-          run: |
-            modified_json=$(echo "$BUILD_VARS_JSON" | jq 'del(.repos[0])')
-            echo "Modified JSON:"
-            echo "$modified_json" | jq .
-            BUILD_VARS_JSON=$(echo "$modified_json" | jq -c '.')
-            echo "BUILD_VARS_JSON=$BUILD_VARS_JSON" >> $GITHUB_ENV
-            echo "**** next next ****"
-            echo "BUILD_VARS_JSON=$BUILD_VARS_JSON"
-        - name: Use modified BUILD_VARS_JSON
-          run: |
-            echo "Using the modified BUILD_VARS_JSON environment variable:"
-            echo "$BUILD_VARS_JSON" | jq .
-        - name: Look up the next repo name to build
-          id: extract_repo_name
-          run: |
-            echo "BUILD_VARS_JSON value is: $BUILD_VARS_JSON"
-            NEXTREPO=$(echo  "$BUILD_VARS_JSON"  | jq -r '.repos[0].name' )
-            echo "NEXTREPO=$NEXTREPO" >> $GITHUB_ENV
-        - name: Display NEXTREPO value
-          run: echo "The value of NEXTREPO is $NEXTREPO"
-        - name: Add GitHub run ID to buildids
-          id: add_run_id
-          run: |
-            GITHUB_RUN_ID=${{ github.run_id }}
-            modified_json=$(echo "$BUILD_VARS_JSON"  | jq --arg run_id "$GITHUB_RUN_ID" '.buildids."${{ github.event.repository.name }}" = $run_id' )
-            echo "Modified JSON with GitHub run ID:"
-            echo "$modified_json" | jq .
-            BUILD_VARS_JSON=$(echo "$modified_json" | jq -c '.')
-            echo "BUILD_VARS_JSON=$BUILD_VARS_JSON" >> $GITHUB_ENV
-            echo "BUILD_VARS_JSON=$BUILD_VARS_JSON"
-        - name: Capture end date and time
-          id: end_time
-          run: echo "end_time=$(date -u)" >> $GITHUB_ENV
-
-        - name: Add end time to build_vars.json
-          run: |
-            modified_json=$(echo "$BUILD_VARS_JSON" | jq '.buildstats += { "${{ github.event.repository.name }}-end": "${{ env.end_time }}" }' )
-            BUILD_VARS_JSON=$(echo "$modified_json" | jq -c '.')
-            echo "BUILD_VARS_JSON=$BUILD_VARS_JSON" >> $GITHUB_ENV
-            echo "BUILD_VARS_JSON=$BUILD_VARS_JSON"
-        - name: Use modified BUILD_VARS_JSON with run id
-          run: |
-            echo "Using the modified BUILD_VARS_JSON environment variable:"
-            echo "$BUILD_VARS_JSON" | jq .
-        - name: Pass workflow
-          if: env.BUILD_TYPE == 'FULL'
-          uses: actions/github-script@v6
-          with:
-            github-token: ${{ secrets.GIT_ACTIONS }}
-            script: |
-              await github.rest.actions.createWorkflowDispatch({
-              owner: 'cs1867',
-              repo: '${{ env.NEXTREPO}}',
-              workflow_id: '${{ env.NEXTREPO}}-workflow.yml',
-              ref: 'github-workflow',
-               inputs: {
-              BUILD_VARS_JSON: '${{ env.BUILD_VARS_JSON}}'
-              }
-              })
+       
