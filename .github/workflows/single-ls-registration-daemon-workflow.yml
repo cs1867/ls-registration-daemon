@@ -4,7 +4,7 @@ on:
   push:
     branches: 
       - github-workflow 
-env:
+env: 
   BUILD_OS: u20 
 
 jobs:
