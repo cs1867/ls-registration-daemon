@@ -43,18 +43,6 @@ jobs:
           artifact_path="artifacts/pscheduler
           echo "Listing artifact path:"
           ls -al "$artifact_path"
-          case "${{ env.BUILD_OS }}" in
-            'ol8'|'el9')
-              mkdir -p artifacts/RPMS
-              cp "$artifact_path"/RPMS/*.rpm artifacts/RPMS
-              ;;
-            'd11'|'d12'|'u20'|'u24')
-              mkdir -p artifacts/DEBS
-              cp -r "$artifact_path"/* artifacts/DEBS
-              echo "List artifacts DEBS directory:"
-              ls -al artifacts/DEBS/*
-              ;;
-          esac
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_ACTIONS }}
 
