@@ -99,11 +99,9 @@ jobs:
                   cp "$artifact_path"/RPMS/*.rpm artifacts/RPMS
                  ;;
                 'd11'|'d12'|'u20'|'u24')                
-                  mkdir -p artifacts/DEBS
-                  echo "copy to the artifacts DEBS dir"
-                  cp -r "$artifact_path"/* artifacts/DEBS
-                  echo "list artifacts DEBS dir"
-                  ls -al artifacts/DEBS/*
+                  echo "Listing artifact path:"
+                  pwd
+                  ls -al "$artifact_path"
                   ;;
               esac
             done < deps.txt
