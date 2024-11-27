@@ -2,7 +2,7 @@ name: single-ls-registration-daemon-workflow
 
 on: 
   push:
-    branches:
+    branches: 
       - github-workflow 
 env:
   BUILD_OS: u20 
