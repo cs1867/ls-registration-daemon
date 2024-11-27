@@ -45,7 +45,7 @@ jobs:
           ls -al "$artifact_path"
           echo "Downloading artifact for perl-shared"
           echo "Run ID: 12052703124"
-          gh run download 12052703124 --repo cs1867/pscheduler -D artifacts/perf-shared --name "perl-shared-${{ env.BUILD_OS }}"  
+          gh run download 12052703124 --repo cs1867/perl-shared -D artifacts/perl-shared --name "perl-shared-${{ env.BUILD_OS }}"  
           artifact_path="artifacts/perl-shared"
           echo "Listing artifact path:"
           ls -al "$artifact_path"
