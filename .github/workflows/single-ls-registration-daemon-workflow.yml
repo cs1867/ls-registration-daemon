@@ -29,7 +29,7 @@ jobs:
               cp project/toolbox/workflows/github-el-workflow.sh .
               ;;
             'd11'|'d12'|'u20'|'u24')
-              cp project/toolbox/workflows/github_u20_workflow.sh .
+              cp project/toolbox/workflows/github-db-workflow.sh .
               ;;
           esac
 
@@ -38,14 +38,14 @@ jobs:
         run: |
           mkdir -p artifacts
           echo "Downloading artifact for pscheduler"
-          echo "Run ID: 12052329501"
-          gh run download 12052329501 --repo cs1867/pscheduler -D artifacts/pscheduler --name "pscheduler-${{ env.BUILD_OS }}"  
+          echo "Run ID: 14756183240"
+          gh run download 14756183240 --repo cs1867/pscheduler -D artifacts/pscheduler --name "pscheduler-${{ env.BUILD_OS }}"  
           artifact_path="artifacts/pscheduler"
           echo "Listing artifact path:"
           ls -al "$artifact_path"
           echo "Downloading artifact for perl-shared"
-          echo "Run ID: 12052703124"
-          gh run download 12052703124 --repo cs1867/perl-shared -D artifacts/perl-shared --name "perl-shared-${{ env.BUILD_OS }}"  
+          echo "Run ID: 14756627944"
+          gh run download 14756627944 --repo cs1867/perl-shared -D artifacts/perl-shared --name "perl-shared-${{ env.BUILD_OS }}"  
           artifact_path="artifacts/perl-shared"
           echo "Listing artifact path:"
           pwd
@@ -61,7 +61,7 @@ jobs:
               curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run github-el-workflow.sh . '${{ env.BUILD_OS }}'
               ;;
             'd11'|'d12'|'u20'|'u24')
-              curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run github_u20_workflow.sh . '${{ env.BUILD_OS }}'
+              curl -s https://raw.githubusercontent.com/perfsonar/docker-oneshot-builder/main/build | sh -s - --run github-db-workflow.sh . '${{ env.BUILD_OS }}'
               ;;
           esac
 
